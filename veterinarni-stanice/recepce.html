@@ -19,10 +19,13 @@
             display: block;
             margin-bottom: 5px;
         }
-        input, button {
+        input, select, button {
             padding: 8px;
             width: 100%;
             max-width: 300px;
+        }
+        .appointments-list {
+            margin-top: 20px;
         }
     </style>
 </head>
@@ -41,10 +44,21 @@
         <input type="number" id="duration" required>
     </div>
     <div class="form-group">
-        <label for="client">Klient:</label>
+        <label for="client">Jméno klienta:</label>
         <input type="text" id="client" required>
     </div>
+    <div class="form-group">
+        <label for="doctor">Doktor:</label>
+        <select id="doctor" required>
+            <option value="Mráček">Mráček</option>
+            <option value="Janáček">Janáček</option>
+        </select>
+    </div>
     <button onclick="addAppointment()">Přidat rezervaci</button>
+
+    <h2>Objednaní pacienti</h2>
+    <button onclick="loadAppointments()">Načíst rezervace</button>
+    <div class="appointments-list" id="appointments-list"></div>
 
     <script>
         function addAppointment() {
@@ -52,21 +66,50 @@
             const time = document.getElementById('time').value;
             const duration = document.getElementById('duration').value;
             const client = document.getElementById('client').value;
+            const doctor = document.getElementById('doctor').value;
 
-            fetch('http://localhost:3000/appointments', {
+            fetch('https://veterinarni-stanice.vercel.app/appointments', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Basic cmVjZXBjZTpoZXNsbzEyMw==' // recepce:heslo123 v Base64
+                    'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ date, time, duration, client })
+                body: JSON.stringify({ date, time, duration, client, doctor })
             })
                 .then(response => response.text())
                 .then(message => {
-                    alert(message);
+                    alert(message); // Zobrazí zprávu "Rezervace proběhla úspěšně"
                 })
                 .catch(error => {
                     console.error('Chyba při přidávání rezervace: ', error);
+                });
+        }
+
+        function loadAppointments() {
+            const date = document.getElementById('date').value;
+            const doctor = document.getElementById('doctor').value;
+
+            fetch(`https://veterinarni-stanice.vercel.app/appointments?date=${date}&doctor=${doctor}`)
+                .then(response => response.json())
+                .then(data => {
+                    const appointmentsList = document.getElementById('appointments-list');
+                    appointmentsList.innerHTML = '';
+
+                    if (data.length === 0) {
+                        appointmentsList.innerHTML = '<p>Žádné rezervace.</p>';
+                        return;
+                    }
+
+                    const list = document.createElement('ul');
+                    data.forEach(app => {
+                        const item = document.createElement('li');
+                        item.textContent = `${app.client} - ${app.time} (${app.duration} minut) - ${app.doctor}`;
+                        list.appendChild(item);
+                    });
+
+                    appointmentsList.appendChild(list);
+                })
+                .catch(error => {
+                    console.error('Chyba při načítání rezervací: ', error);
                 });
         }
     </script>

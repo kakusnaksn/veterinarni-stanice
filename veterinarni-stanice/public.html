@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Veterinární stanice</title>
+    <title>Veřejné rozhraní</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -21,6 +21,7 @@
             padding: 10px;
             border: 1px solid #ccc;
             text-align: center;
+            cursor: pointer;
         }
         .time-slot.booked {
             background-color: #ffcccc;
@@ -31,6 +32,11 @@
     <h1>Dostupné časové sloty</h1>
     <label for="date">Vyber datum:</label>
     <input type="date" id="date" required>
+    <label for="doctor">Vyber doktora:</label>
+    <select id="doctor" required>
+        <option value="Mráček">Mráček</option>
+        <option value="Janáček">Janáček</option>
+    </select>
     <button onclick="loadAppointments()">Načíst rezervace</button>
 
     <h2>Časové sloty</h2>
@@ -39,7 +45,9 @@
     <script>
         function loadAppointments() {
             const date = document.getElementById('date').value;
-            fetch(`http://localhost:3000/appointments?date=${date}`)
+            const doctor = document.getElementById('doctor').value;
+
+            fetch(`https://veterinarni-stanice.vercel.app/appointments?date=${date}&doctor=${doctor}`)
                 .then(response => response.json())
                 .then(data => {
                     const calendar = document.getElementById('calendar');

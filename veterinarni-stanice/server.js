@@ -3,7 +3,7 @@ const fs = require('fs');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const app = express();
-const port = process.env.PORT || 3000; // Použijte port z proměnné prostředí (nutné pro Vercel)
+const port = process.env.PORT || 3000;
 
 app.use(bodyParser.json());
 app.use(cors());
@@ -20,32 +20,37 @@ app.get('/', (req, res) => {
     res.send('Backend veterinární stanice funguje!');
 });
 
-// Middleware pro ověření přihlášení
-const authenticate = (req, res, next) => {
-    const authHeader = req.headers.authorization;
-    if (!authHeader || authHeader !== 'Basic cmVjZXBjZTpoZXNsbzEyMw==') { // recepce:heslo123 v Base64
-        return res.status(401).send('Neoprávněný přístup');
-    }
-    next();
-};
-
 // Routa pro získání rezervací
 app.get('/appointments', (req, res) => {
+    const date = req.query.date;
+    const doctor = req.query.doctor;
+
     fs.readFile(appointmentsFile, 'utf8', (err, data) => {
         if (err) {
             return res.status(500).send('Chyba při načítání rezervací');
         }
-        res.json(JSON.parse(data));
+
+        let appointments = JSON.parse(data);
+
+        // Filtrace podle data a doktora
+        if (date) {
+            appointments = appointments.filter(app => app.date === date);
+        }
+        if (doctor) {
+            appointments = appointments.filter(app => app.doctor === doctor);
+        }
+
+        res.json(appointments);
     });
 });
 
 // Routa pro přidání rezervace
-app.post('/appointments', authenticate, (req, res) => {
+app.post('/appointments', (req, res) => {
     const newAppointment = req.body;
 
     // Validace vstupů
-    if (!newAppointment.date || !newAppointment.time || !newAppointment.duration) {
-        return res.status(400).send('Chybějící datum, čas nebo délka rezervace');
+    if (!newAppointment.date || !newAppointment.time || !newAppointment.duration || !newAppointment.client || !newAppointment.doctor) {
+        return res.status(400).send('Chybějící datum, čas, délka, jméno klienta nebo doktor');
     }
 
     fs.readFile(appointmentsFile, 'utf8', (err, data) => {
@@ -75,7 +80,7 @@ app.post('/appointments', authenticate, (req, res) => {
             if (err) {
                 return res.status(500).send('Chyba při ukládání rezervací');
             }
-            res.send('Rezervace úspěšně uložena');
+            res.send('Rezervace proběhla úspěšně');
         });
     });
 });

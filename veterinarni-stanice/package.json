@@ -1,14 +1,17 @@
 {
   "name": "veterinarni-stanice",
   "version": "1.0.0",
-  "description": "Rezervační systém pro veterinární stanici",
+  "description": "Backend pro veterinární stanici",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
     "express": "^4.17.1",
     "body-parser": "^1.19.0",
     "cors": "^2.8.5"
-  }
+  },
+  "author": "VaseJmeno",
+  "license": "MIT"
 }

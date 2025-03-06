@@ -3,7 +3,7 @@ const fs = require('fs');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000; // Použijte port z proměnné prostředí (nutné pro Vercel)
 
 app.use(bodyParser.json());
 app.use(cors());
@@ -15,6 +15,11 @@ if (!fs.existsSync(appointmentsFile)) {
     fs.writeFileSync(appointmentsFile, '[]');
 }
 
+// Základní routa pro kořenovou cestu
+app.get('/', (req, res) => {
+    res.send('Backend veterinární stanice funguje!');
+});
+
 // Middleware pro ověření přihlášení
 const authenticate = (req, res, next) => {
     const authHeader = req.headers.authorization;
@@ -24,25 +29,17 @@ const authenticate = (req, res, next) => {
     next();
 };
 
-// Načtení rezervací pro konkrétní datum (veřejné)
+// Routa pro získání rezervací
 app.get('/appointments', (req, res) => {
-    const date = req.query.date;
-
     fs.readFile(appointmentsFile, 'utf8', (err, data) => {
         if (err) {
             return res.status(500).send('Chyba při načítání rezervací');
         }
-
-        const appointments = JSON.parse(data);
-        const filteredAppointments = date 
-            ? appointments.filter(app => app.date === date) 
-            : appointments;
-
-        res.json(filteredAppointments);
+        res.json(JSON.parse(data));
     });
 });
 
-// Přidání rezervace (pouze pro recepční)
+// Routa pro přidání rezervace
 app.post('/appointments', authenticate, (req, res) => {
     const newAppointment = req.body;
 
@@ -84,5 +81,5 @@ app.post('/appointments', authenticate, (req, res) => {
 });
 
 app.listen(port, () => {
-    console.log(`Server běží na http://localhost:${port}`);
+    console.log(`Server běží na portu ${port}`);
 });

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recepční rozhraní</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        h1 {
+            color: #333;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input, button {
+            padding: 8px;
+            width: 100%;
+            max-width: 300px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Recepční rozhraní</h1>
+    <div class="form-group">
+        <label for="date">Datum:</label>
+        <input type="date" id="date" required>
+    </div>
+    <div class="form-group">
+        <label for="time">Čas:</label>
+        <input type="time" id="time" required>
+    </div>
+    <div class="form-group">
+        <label for="duration">Délka (minuty):</label>
+        <input type="number" id="duration" required>
+    </div>
+    <div class="form-group">
+        <label for="client">Klient:</label>
+        <input type="text" id="client" required>
+    </div>
+    <button onclick="addAppointment()">Přidat rezervaci</button>
+
+    <script>
+        function addAppointment() {
+            const date = document.getElementById('date').value;
+            const time = document.getElementById('time').value;
+            const duration = document.getElementById('duration').value;
+            const client = document.getElementById('client').value;
+
+            fetch('http://localhost:3000/appointments', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Basic cmVjZXBjZTpoZXNsbzEyMw==' // recepce:heslo123 v Base64
+                },
+                body: JSON.stringify({ date, time, duration, client })
+            })
+                .then(response => response.text())
+                .then(message => {
+                    alert(message);
+                })
+                .catch(error => {
+                    console.error('Chyba při přidávání rezervace: ', error);
+                });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Veterinární stanice</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        h1 {
+            color: #333;
+        }
+        .calendar {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+        .time-slot {
+            padding: 10px;
+            border: 1px solid #ccc;
+            text-align: center;
+        }
+        .time-slot.booked {
+            background-color: #ffcccc;
+        }
+    </style>
+</head>
+<body>
+    <h1>Dostupné časové sloty</h1>
+    <label for="date">Vyber datum:</label>
+    <input type="date" id="date" required>
+    <button onclick="loadAppointments()">Načíst rezervace</button>
+
+    <h2>Časové sloty</h2>
+    <div class="calendar" id="calendar"></div>
+
+    <script>
+        function loadAppointments() {
+            const date = document.getElementById('date').value;
+            fetch(`http://localhost:3000/appointments?date=${date}`)
+                .then(response => response.json())
+                .then(data => {
+                    const calendar = document.getElementById('calendar');
+                    calendar.innerHTML = '';
+
+                    const startTime = 9; // Začátek pracovní doby (9:00)
+                    const endTime = 17; // Konec pracovní doby (17:00)
+                    const slotDuration = 30; // Délka slotu v minutách
+
+                    for (let hour = startTime; hour < endTime; hour++) {
+                        for (let minute = 0; minute < 60; minute += slotDuration) {
+                            const time = `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
+                            const isBooked = data.some(app => {
+                                const appStart = new Date(`${app.date}T${app.time}:00`);
+                                const appEnd = new Date(appStart.getTime() + app.duration * 60000);
+                                const slotStart = new Date(`${date}T${time}:00`);
+                                const slotEnd = new Date(slotStart.getTime() + slotDuration * 60000);
+
+                                return slotStart < appEnd && slotEnd > appStart;
+                            });
+
+                            const slot = document.createElement('div');
+                            slot.className = `time-slot ${isBooked ? 'booked' : ''}`;
+                            slot.textContent = time;
+
+                            calendar.appendChild(slot);
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Chyba při načítání rezervací: ', error);
+                });
+        }
+    </script>
+</body>
+</html>
